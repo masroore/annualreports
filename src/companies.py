@@ -11,6 +11,7 @@ import orjson as json
 from selectolax.parser import HTMLParser, Node
 
 _rex_year = re.compile(r"\b(19|20)\d{2}\b")
+BASE_URL = "https://www.annualreports.com"
 
 
 @dataclass
@@ -66,7 +67,7 @@ def scrape_companies_list_page(html: str | bytes) -> list[CompanyIndex]:
 
 def get_companies_list(url: str | None = None) -> list[CompanyIndex]:
     if not url:
-        url = "https://www.annualreports.com/Companies"
+        url = BASE_URL + "/Companies"
     resp = httpx.get(
         url=url,
         headers={
