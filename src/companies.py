@@ -82,7 +82,8 @@ def _zap_node(node: Node | None):
 
 def _extract_download_key(s: str | None) -> str | None:
     if s:
-        return "_".join(s.split("_")[:-1])
+        s = "_".join(s.split("_")[:-1])
+        return "/".join(s.split("/")[-2:])
 
     return None
 
