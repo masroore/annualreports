@@ -15,7 +15,7 @@ def load_companies_list():
 
 
 def scrape_company(slug: str, ix: int, total: int):
-    print(f"[{ix:04d} / {total}] {slug}")
+    print(f"[{ix:04d}/{total}] {slug}")
     url = companies.BASE_URL + "/Company/" + slug
     content = fetch.http_get(url)
     data = companies.scrape_company_page(content, slug)
