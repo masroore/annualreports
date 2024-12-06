@@ -39,6 +39,9 @@ def _extract_text(node: Node, selector: str | None = None) -> str | None:
     else:
         target = node
 
+    if not target:
+        return None
+
     text = target.text(strip=True).strip()
     if text:
         return text
@@ -72,7 +75,12 @@ def get_companies_list(url: str | None = None) -> list[CompanyIndex]:
     return scrape_companies_list_page(content)
 
 
-def scrape_company_page(html: str | bytes) -> dict:
+def _zap_node(node: Node | None):
+    if node:
+        node.decompose(recursive=True)
+
+
+def scrape_company_page(html: str | bytes, slug: str) -> dict:
     company = {}
     dom = HTMLParser(html)
 
@@ -88,22 +96,28 @@ def scrape_company_page(html: str | bytes) -> dict:
     description: description,
     url: url,
     logo_url: logo.contentUrl,
+    rating_count: aggregateRating.reviewCount,
+    rating_value: aggregateRating.ratingValue,    
     social_links: sameAs
 }
             """,
                 data,
             )
 
+    company["slug"] = slug
     top_content_list = dom.css_first("li.top_content_list")
     if top_content_list:
         company["ticker_name"] = _extract_text(top_content_list, "span.ticker_name")
         div_right = top_content_list.css_first("div.right")
         if div_right:
-            div_right.css_first("span.blue_txt").decompose(recursive=True)
-            div_right.css_first("span.more").decompose(recursive=True)
+            _zap_node(div_right.css_first("span.blue_txt"))
+            _zap_node(div_right.css_first("span.more"))
             company["exchange"] = _extract_text(div_right)
 
-    company["sort_char"] = company["ticker_name"][0].lower()
+    if company["ticker_name"]:
+        company["sort_char"] = company["ticker_name"][0].lower()
+    else:
+        company["sort_char"] = company["slug"][0].lower()
     company["employees"] = _extract_text(dom.root, "li.employees")
     company["location"] = _extract_text(dom.root, "li.location")
     company["reports"]: list[AnnualReport] = []
@@ -153,10 +167,16 @@ def _scrape_archived_reports(node: Node) -> list[AnnualReport]:
         return reports
 
     for li in archived_report_content_block.css("li"):
-        preview_img = li.css_first("img").attributes.get("src")
-        report_id = os.path.splitext(os.path.basename(preview_img))[0]
+        report_id = preview_img = heading = None
+
+        p_img = li.css_first("img")
+        if p_img:
+            preview_img = p_img.attributes.get("src")
+            report_id = os.path.splitext(os.path.basename(preview_img))[0]
+
         heading = _extract_text(li, "span.heading")
         year = _extract_report_year(heading)
+        print(heading)
         reports.append(
             AnnualReport(
                 report_id=report_id,
