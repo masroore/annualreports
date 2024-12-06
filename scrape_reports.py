@@ -19,7 +19,7 @@ def scrape_company(slug: str):
     url = companies.BASE_URL + "/Company/" + slug
     content = fetch.http_get(url)
     data = companies.scrape_company_page(content, slug)
-    with (COMPANY_STORAGE_PATH / (slug + ".json")).open("wb") as fp:
+    with (COMPANY_STORAGE_PATH / (slug.lower() + ".json")).open("wb") as fp:
         fp.write(json.dumps(data, option=json.OPT_INDENT_2))
     return data
 

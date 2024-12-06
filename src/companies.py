@@ -80,6 +80,13 @@ def _zap_node(node: Node | None):
         node.decompose(recursive=True)
 
 
+def _extract_download_key(s: str | None) -> str | None:
+    if s:
+        return "_".join(s.split("_")[:-1])
+
+    return None
+
+
 def scrape_company_page(html: str | bytes, slug: str) -> dict:
     company = {}
     dom = HTMLParser(html)
@@ -120,11 +127,13 @@ def scrape_company_page(html: str | bytes, slug: str) -> dict:
         company["sort_char"] = company["slug"][0].lower()
     company["employees"] = _extract_text(dom.root, "li.employees")
     company["location"] = _extract_text(dom.root, "li.location")
+    if company["location"]:
+        company["location"] = company["location"].replace("Based in ", "").strip()
     company["reports"]: list[AnnualReport] = []
 
     most_recent_block = dom.css_first("div.most_recent_content_block")
     if most_recent_block:
-        report_id = preview_img = heading = None
+        report_id = preview_img = heading = report_year = None
         most_recent_pvw_img = most_recent_block.css_first("div.most_recent_pvw_img > img")
         if most_recent_pvw_img:
             preview_img = most_recent_pvw_img.attributes.get("src")
@@ -133,7 +142,9 @@ def scrape_company_page(html: str | bytes, slug: str) -> dict:
         bold_txt = most_recent_block.css_first(".bold_txt")
         if bold_txt:
             heading = _extract_text(bold_txt)
-        report_year = _extract_report_year(heading)
+            if heading:
+                report_year = _extract_report_year(heading)
+
         if report_id:
             company["reports"].append(
                 AnnualReport(
@@ -148,6 +159,7 @@ def scrape_company_page(html: str | bytes, slug: str) -> dict:
 
     reports = _scrape_archived_reports(dom.root)
     if any(reports):
+        company["dl_key"] = _extract_download_key(reports[-1].download_link)
         company["reports"].extend(reports)
 
     return company
@@ -183,6 +195,7 @@ def _scrape_archived_reports(node: Node) -> list[AnnualReport]:
         dl_report = li.css_first("span.download > a")
         if dl_report:
             download_link = dl_report.attributes.get("href")
+
         reports.append(
             AnnualReport(
                 report_id=report_id,
