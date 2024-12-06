@@ -1,4 +1,10 @@
+browser-cookie3
+curl_cffi
+furl
 httpx
 jmespath
+leveldb-py
 orjson
+python-slugify
 selectolax
+stashlib

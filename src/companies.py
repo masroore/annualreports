@@ -53,9 +53,7 @@ def scrape_companies_list_page(html: str | bytes) -> list[CompanyIndex]:
             continue
 
         link = company_name.css_first("a").attributes.get("href")
-        company = CompanyIndex(
-            name=company_name.text(strip=True).strip(), slug=os.path.basename(link)
-        )
+        company = CompanyIndex(name=company_name.text(strip=True).strip(), slug=os.path.basename(link))
 
         company.sector = _extract_text(li, "span.sectorName")
         company.industry = _extract_text(li, "span.industryName")
@@ -118,9 +116,7 @@ def scrape_company_page(html: str | bytes) -> dict:
     most_recent_block = dom.css_first("div.most_recent_content_block")
     if most_recent_block:
         report_id = preview_img = heading = None
-        most_recent_pvw_img = most_recent_block.css_first(
-            "div.most_recent_pvw_img > img"
-        )
+        most_recent_pvw_img = most_recent_block.css_first("div.most_recent_pvw_img > img")
         if most_recent_pvw_img:
             preview_img = most_recent_pvw_img.attributes.get("src")
             report_id = os.path.splitext(os.path.basename(preview_img))[0]
@@ -157,9 +153,7 @@ def _extract_report_year(s: str) -> str:
 def _scrape_archived_reports(node: Node) -> list[AnnualReport]:
     reports: list[AnnualReport] = []
 
-    archived_report_content_block = node.css_first(
-        "div.archived_report_content_block > ul"
-    )
+    archived_report_content_block = node.css_first("div.archived_report_content_block > ul")
     if not archived_report_content_block:
         return reports
 
@@ -174,12 +168,8 @@ def _scrape_archived_reports(node: Node) -> list[AnnualReport]:
                 preview_img=preview_img,
                 heading=heading,
                 report_year=year,
-                view_link=(
-                    li.css_first("span.view_annual_report > a").attributes.get("href")
-                ),
-                download_link=(
-                    li.css_first("span.download > a").attributes.get("href")
-                ),
+                view_link=(li.css_first("span.view_annual_report > a").attributes.get("href")),
+                download_link=(li.css_first("span.download > a").attributes.get("href")),
             )
         )
 

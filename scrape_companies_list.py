@@ -1,9 +1,10 @@
 # Copyright 2023 Dr. Masroor Ehsan
-import orjson as json
+import json
 
-from src import companies
 from scraper_kit.src import utils
+from src import companies, fetch
 
 if __name__ == "__main__":
+    fetch.init_all()
     companies = companies.get_companies_list()
-    utils.fputb("companies-list.json", json.dumps(companies, option=json.OPT_INDENT_2))
+    utils.fputs("./storage/companies-list.json", json.dumps(companies))
