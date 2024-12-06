@@ -1,7 +1,6 @@
 import json
 import os
 import pickle
-import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
@@ -9,8 +8,6 @@ from urllib.parse import urljoin, urlparse
 
 import browser_cookie3
 import furl
-
-# import grequests
 from curl_cffi import requests
 from stash import StashOptions, get_leveldb_lzma_stash
 from stash.consts import SECONDS_IN_DAY
@@ -20,7 +17,7 @@ _cookies = None
 _session = requests.session.Session()
 _thread_workers_count = 4
 
-TMP_PATH = Path("./tmp")
+STORAGE_PATH = Path("./storage")
 CACHE_PATH = Path("./__cache__")
 
 
@@ -44,7 +41,7 @@ def __init_transport():
     _session.verify = False
 
 
-_cookie_file = TMP_PATH / "_cookies.pk"
+_cookie_file = STORAGE_PATH / "cookies.pkl"
 
 
 def _cookies_save():

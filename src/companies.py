@@ -5,10 +5,11 @@ import os.path
 import re
 from dataclasses import dataclass
 
-import httpx
 import jmespath
 import orjson as json
 from selectolax.parser import HTMLParser, Node
+
+from . import fetch
 
 _rex_year = re.compile(r"\b(19|20)\d{2}\b")
 BASE_URL = "https://www.annualreports.com"
@@ -66,15 +67,9 @@ def scrape_companies_list_page(html: str | bytes) -> list[CompanyIndex]:
 def get_companies_list(url: str | None = None) -> list[CompanyIndex]:
     if not url:
         url = BASE_URL + "/Companies"
-    resp = httpx.get(
-        url=url,
-        headers={
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
-            "Accept-Encoding": "gzip, deflate, br",
-        },
-    )
-    if resp.status_code == 200:
-        return scrape_companies_list_page(resp.content)
+
+    content = fetch.http_get(url)
+    return scrape_companies_list_page(content)
 
 
 def scrape_company_page(html: str | bytes) -> dict:

@@ -8,3 +8,4 @@ orjson
 python-slugify
 selectolax
 stashlib
+xxhash
