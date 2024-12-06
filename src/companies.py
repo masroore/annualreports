@@ -163,6 +163,7 @@ def scrape_company_page(html: str | bytes, slug: str) -> dict:
         company["dl_key"] = _extract_download_key(reports[-1].download_link)
         company["reports"].extend(reports)
 
+    company = {k: v.strip() if v is str else v for k, v in sorted(company.items())}
     return company
 
 
