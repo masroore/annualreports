@@ -176,15 +176,21 @@ def _scrape_archived_reports(node: Node) -> list[AnnualReport]:
 
         heading = _extract_text(li, "span.heading")
         year = _extract_report_year(heading)
-        print(heading)
+        view_link = download_link = None
+        vw_report = li.css_first("span.view_annual_report > a")
+        if vw_report:
+            view_link = vw_report.attributes.get("href")
+        dl_report = li.css_first("span.download > a")
+        if dl_report:
+            download_link = dl_report.attributes.get("href")
         reports.append(
             AnnualReport(
                 report_id=report_id,
                 preview_img=preview_img,
                 heading=heading,
                 report_year=year,
-                view_link=(li.css_first("span.view_annual_report > a").attributes.get("href")),
-                download_link=(li.css_first("span.download > a").attributes.get("href")),
+                view_link=view_link,
+                download_link=download_link,
             )
         )
 
