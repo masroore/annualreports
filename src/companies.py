@@ -160,8 +160,8 @@ def scrape_company_page(html: str | bytes, slug: str) -> dict:
 
     reports = _scrape_archived_reports(dom.root)
     if any(reports):
-        company["dl_key"] = _extract_download_key(reports[-1].download_link)
         company["reports"].extend(reports)
+        company["report_key"] = _extract_download_key(reports[-1].download_link)
 
     company = {k: v.strip() if v is str else v for k, v in sorted(company.items())}
     return company
