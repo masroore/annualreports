@@ -48,7 +48,8 @@ def info(comp_id: str):
 
 def get_permutations(repeat: int) -> list[str]:
     perms = list(product(ascii_lowercase, repeat=repeat))
-    return ["".join(r) for r in perms]
+    terms = ["".join(r) for r in perms]
+    return [x for x in terms if not (STORAGE_PATH / f"index_{x}.json").exists()]
 
 
 for c in digits:
