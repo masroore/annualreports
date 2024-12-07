@@ -8,6 +8,7 @@ COMPANY_STORAGE_PATH = STORAGE_PATH / "companies"
 
 _AR_COMPANIES = {}
 _RR_COMPANIES = {}
+_report_links = []
 
 
 def load_companies_list():

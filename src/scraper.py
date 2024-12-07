@@ -69,8 +69,12 @@ def scrape_companies_list_page(html: str | bytes) -> list[CompanyIndex]:
     return companies
 
 
-def get_url(is_csr: bool, path: str) -> str:
-    return (RR_BASE_URL if is_csr else AR_BASE_URL) + path
+def get_url(is_csr: bool, path: str | None) -> str | None:
+    if not path:
+        return None
+    if "://" in path:
+        return path
+    return (RR_BASE_URL if is_csr else AR_BASE_URL) + "/" + path.lstrip("/")
 
 
 def get_companies_list(is_csr: bool, url: str | None = None) -> list[CompanyIndex]:
@@ -175,6 +179,8 @@ def scrape_company_page(html: str | bytes, slug: str, is_csr: bool) -> dict:
         for rep in reports:
             if rep.report_year:
                 company["years"].append(int(rep.report_year))
+
+        company["years"] = sorted(company["years"])
         company["report_key"] = _extract_download_key(reports[-1].download_link)
 
     company = {k: v.strip() if v is str else v for k, v in sorted(company.items())}
@@ -216,11 +222,11 @@ def _scrape_archived_reports(node: Node, is_csr: bool) -> list[AnnualReport]:
             AnnualReport(
                 is_csr=is_csr,
                 report_id=report_id,
-                preview_img=preview_img,
+                preview_img=get_url(is_csr, preview_img),
                 heading=heading,
                 report_year=year,
-                view_link=view_link,
-                download_link=download_link,
+                view_link=get_url(is_csr, view_link),
+                download_link=get_url(is_csr, download_link),
             )
         )
 
