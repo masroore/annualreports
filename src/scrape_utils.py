@@ -12,7 +12,8 @@ from selectolax.parser import HTMLParser, Node
 from src import fetch
 
 _rex_year = re.compile(r"\b(19|20)\d{2}\b")
-BASE_URL = "https://www.annualreports.com"
+AR_BASE_URL = "https://www.annualreports.com"
+RR_BASE_URL = "https://www.responsibilityreports.com"
 
 
 @dataclass
@@ -25,6 +26,7 @@ class CompanyIndex:
 
 @dataclass
 class AnnualReport:
+    is_csr: bool
     report_id: str
     preview_img: str
     heading: str
@@ -67,9 +69,13 @@ def scrape_companies_list_page(html: str | bytes) -> list[CompanyIndex]:
     return companies
 
 
-def get_companies_list(url: str | None = None) -> list[CompanyIndex]:
+def _base_url(is_csr: bool) -> str:
+    return RR_BASE_URL if is_csr else AR_BASE_URL
+
+
+def get_companies_list(is_csr: bool, url: str | None = None) -> list[CompanyIndex]:
     if not url:
-        url = BASE_URL + "/Companies"
+        url = _base_url(is_csr) + "/Companies"
 
     content = fetch.http_get(url)
     return scrape_companies_list_page(content)
@@ -88,7 +94,7 @@ def _extract_download_key(s: str | None) -> str | None:
     return None
 
 
-def scrape_company_page(html: str | bytes, slug: str) -> dict:
+def scrape_company_page(html: str | bytes, slug: str, is_csr: bool) -> dict:
     company = {}
     dom = HTMLParser(html)
 
@@ -153,6 +159,7 @@ def scrape_company_page(html: str | bytes, slug: str) -> dict:
         if report_id:
             company["reports"].append(
                 AnnualReport(
+                    is_csr=is_csr,
                     report_id=report_id,
                     report_year=report_year,
                     preview_img=preview_img,
@@ -162,7 +169,7 @@ def scrape_company_page(html: str | bytes, slug: str) -> dict:
                 )
             )
 
-    reports = _scrape_archived_reports(dom.root)
+    reports = _scrape_archived_reports(dom.root, is_csr)
     if any(reports):
         company["reports"].extend(reports)
         for rep in reports:
@@ -179,7 +186,7 @@ def _extract_report_year(s: str) -> str:
         return m.group(0)
 
 
-def _scrape_archived_reports(node: Node) -> list[AnnualReport]:
+def _scrape_archived_reports(node: Node, is_csr: bool) -> list[AnnualReport]:
     reports: list[AnnualReport] = []
 
     archived_report_content_block = node.css_first("div.archived_report_content_block > ul")
@@ -206,6 +213,7 @@ def _scrape_archived_reports(node: Node) -> list[AnnualReport]:
 
         reports.append(
             AnnualReport(
+                is_csr=is_csr,
                 report_id=report_id,
                 preview_img=preview_img,
                 heading=heading,
