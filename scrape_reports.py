@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from src import scraper, fetch
+from src import annual_reports, fetch
 import orjson as json
 
 STORAGE_PATH = Path("./storage")
@@ -13,10 +13,10 @@ _report_links = []
 
 def load_companies_list():
     global _AR_COMPANIES, _RR_COMPANIES
-    _AR_COMPANIES = scraper.get_companies_list(False)
+    _AR_COMPANIES = annual_reports.get_companies_list(False)
     with (STORAGE_PATH / "companies-ar.json").open("wb") as fp:
         fp.write(json.dumps(_AR_COMPANIES, option=json.OPT_INDENT_2))
-    _RR_COMPANIES = scraper.get_companies_list(True)
+    _RR_COMPANIES = annual_reports.get_companies_list(True)
     with (STORAGE_PATH / "companies-rr.json").open("wb") as fp:
         fp.write(json.dumps(_RR_COMPANIES, option=json.OPT_INDENT_2))
 
@@ -29,15 +29,17 @@ def fname_from_slug(slug: str, is_csr: bool) -> str:
 def generate_links(is_csr: bool, dl_key: str, years: list[int]):
     links = []
     for yr in years:
-        links.append(scraper.get_url(is_csr, "/HostedData/AnnualReportArchive/" + dl_key + "_" + str(yr) + ".pdf"))
+        links.append(
+            annual_reports.get_url(is_csr, "/HostedData/AnnualReportArchive/" + dl_key + "_" + str(yr) + ".pdf")
+        )
     return links
 
 
 def scrape_company(slug: str, ix: int, total: int, is_csr: bool):
     print(f"[{ix:04d}/{total}] {slug}")
-    url = scraper.get_url(is_csr, "/Company/" + slug)
+    url = annual_reports.get_url(is_csr, "/Company/" + slug)
     content = fetch.http_get(url)
-    data = scraper.scrape_company_page(content, slug, is_csr)
+    data = annual_reports.scrape_company_page(content, slug, is_csr)
     with (COMPANY_STORAGE_PATH / fname_from_slug(slug, is_csr)).open("wb") as fp:
         fp.write(json.dumps(data, option=json.OPT_INDENT_2))
     if data.get("report_key"):
