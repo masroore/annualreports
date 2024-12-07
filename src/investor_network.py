@@ -23,17 +23,24 @@ def call_api(url: str):
         "Authorization": "Bearer XXXanonymousXXX",
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
     }
-    resp = requests.post(url, headers=headers)
-    return resp
+    try:
+        resp = requests.post(url, headers=headers)
+        return resp
+    except:
+        return None
+
+
+def index_fpath(term: str) -> Path:
+    return STORAGE_PATH / f"index_{term.lower()}.json"
 
 
 def search(term: str):
     url = furl(COMPANY_SEARCH_API)
-    params = {"per-page": 25, "page": 1, "sort": "name", "param": term}
+    params = {"per-page": 25, "page": 1, "sort": "name", "param": term.upper()}
     url.query.set(params)
     print(url)
     resp = call_api(url)
-    with (STORAGE_PATH / f"index_{term}.json").open("wb") as fp:
+    with index_fpath(term).open("wb") as fp:
         fp.write(json.dumps(resp.json(), option=json.OPT_INDENT_2))
 
 
@@ -42,19 +49,21 @@ def info(comp_id: str):
     url.query.set({"id": comp_id, "expand": "securityListings.quote"})
     print(url)
     resp = call_api(url)
-    with (INFO_STORAGE_PATH / f"{comp_id.lower()}.json").open("wb") as fp:
-        fp.write(json.dumps(resp.json(), option=json.OPT_INDENT_2))
+    if resp:
+        with (INFO_STORAGE_PATH / f"{comp_id.lower()}.json").open("wb") as fp:
+            fp.write(json.dumps(resp.json(), option=json.OPT_INDENT_2))
 
 
 def get_permutations(repeat: int) -> list[str]:
-    perms = list(product(ascii_lowercase, repeat=repeat))
+    perms = list(product(ascii_lowercase + digits, repeat=repeat))
     terms = ["".join(r) for r in perms]
-    return [x for x in terms if not (STORAGE_PATH / f"index_{x}.json").exists()]
+    return [x for x in terms if not index_fpath(x).exists()]
 
 
 for c in digits:
-    search(c)
+    if not index_fpath(c):
+        search(c)
 
-for i in range(1, 4):
+for i in range(1, 5):
     for term in get_permutations(i):
         search(term)
