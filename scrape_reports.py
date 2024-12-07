@@ -13,9 +13,9 @@ _RR_COMPANIES = {}
 def load_companies_list():
     global _AR_COMPANIES, _RR_COMPANIES
     _AR_COMPANIES = scraper.get_companies_list(False)
-    _RR_COMPANIES = scraper.get_companies_list(True)
     with (STORAGE_PATH / "companies-ar.json").open("wb") as fp:
         fp.write(json.dumps(_AR_COMPANIES, option=json.OPT_INDENT_2))
+    _RR_COMPANIES = scraper.get_companies_list(True)
     with (STORAGE_PATH / "companies-rr.json").open("wb") as fp:
         fp.write(json.dumps(_RR_COMPANIES, option=json.OPT_INDENT_2))
 
@@ -27,7 +27,7 @@ def fname_from_slug(slug: str, is_csr: bool) -> str:
 
 def scrape_company(slug: str, ix: int, total: int, is_csr: bool):
     print(f"[{ix:04d}/{total}] {slug}")
-    url = scraper.get_url(True, "/Company/" + slug)
+    url = scraper.get_url(is_csr, "/Company/" + slug)
     content = fetch.http_get(url)
     data = scraper.scrape_company_page(content, slug, is_csr)
     with (COMPANY_STORAGE_PATH / fname_from_slug(slug, is_csr)).open("wb") as fp:

@@ -175,7 +175,8 @@ def scrape_company_page(html: str | bytes, slug: str, is_csr: bool) -> dict:
     if any(reports):
         company["reports"].extend(reports)
         for rep in reports:
-            company["years"].append(int(rep.report_year))
+            if rep.report_year:
+                company["years"].append(int(rep.report_year))
         company["report_key"] = _extract_download_key(reports[-1].download_link)
 
     company = {k: v.strip() if v is str else v for k, v in sorted(company.items())}
