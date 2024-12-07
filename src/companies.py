@@ -146,6 +146,10 @@ def scrape_company_page(html: str | bytes, slug: str) -> dict:
             if heading:
                 report_year = _extract_report_year(heading)
 
+        company["years"] = []
+        if report_year:
+            company["years"].append(int(report_year))
+
         if report_id:
             company["reports"].append(
                 AnnualReport(
@@ -161,6 +165,8 @@ def scrape_company_page(html: str | bytes, slug: str) -> dict:
     reports = _scrape_archived_reports(dom.root)
     if any(reports):
         company["reports"].extend(reports)
+        for rep in reports:
+            company["years"].append(int(rep.report_year))
         company["report_key"] = _extract_download_key(reports[-1].download_link)
 
     company = {k: v.strip() if v is str else v for k, v in sorted(company.items())}
