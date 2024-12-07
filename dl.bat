@@ -1,0 +1,1 @@
+wget.exe -q --show-progress -nc -i list.txt
