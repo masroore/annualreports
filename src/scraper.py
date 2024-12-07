@@ -70,9 +70,7 @@ def scrape_companies_list_page(html: str | bytes) -> list[CompanyIndex]:
 
 
 def get_url(is_csr: bool, path: str) -> str:
-    u = RR_BASE_URL if is_csr else AR_BASE_URL
-    u += path
-    return u
+    return (RR_BASE_URL if is_csr else AR_BASE_URL) + path
 
 
 def get_companies_list(is_csr: bool, url: str | None = None) -> list[CompanyIndex]:
