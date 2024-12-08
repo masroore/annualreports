@@ -40,8 +40,9 @@ def search(term: str):
     url.query.set(params)
     print(url)
     resp = call_api(url)
-    with index_fpath(term).open("wb") as fp:
-        fp.write(json.dumps(resp.json(), option=json.OPT_INDENT_2))
+    if resp:
+        with index_fpath(term).open("wb") as fp:
+            fp.write(json.dumps(resp.json(), option=json.OPT_INDENT_2))
 
 
 def info(comp_id: str):
